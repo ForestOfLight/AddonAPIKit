@@ -4,14 +4,18 @@ import { APIErrorEnum } from "./Errors/APIErrorEnum";
 import { APIServerError } from "./Errors/APIServerError";
 import { APIVersionMismatchError } from "./Errors/APIVersionMismatchError";
 import { ReturnModelShell } from "./APIModels";
+import { EndpointsController } from "./EndpointsController";
 
 export class AddonAPI {
     #name;
     #version;
+    #allEndpoints;
 
     constructor(name, version) {
         this.#name = name;
         this.#version = version;
+        const endpointsController = new EndpointsController(this);
+        this.setupController(endpointsController);
     }
 
     get name() {
@@ -24,6 +28,10 @@ export class AddonAPI {
 
     get endpointBase() {
         return this.#name + ':';
+    }
+
+    get endpoints() {
+        return this.#allEndpoints;
     }
 
     setupController(apiController) {
@@ -42,6 +50,7 @@ export class AddonAPI {
             const parameters = Object.values(callPacket.parameterMap);
             return this.#handleCallback(apiVersion, callback, parameters);
         });
+        this.#allEndpoints.push(endpointPath);
     }
 
     #handleCallback(apiVersion, callback, parameters) {

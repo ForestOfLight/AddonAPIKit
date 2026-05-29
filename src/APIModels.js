@@ -18,3 +18,6 @@ export const CallModelShell = {
     apiVersion: PROTO.String,
     parameterMap: void 0
 };
+
+export const EndpointModel = PROTO.String;
+export const EndpointsModel = PROTO.Array(EndpointModel);

@@ -1,7 +1,7 @@
 import * as esbuild from 'esbuild';
 
 await esbuild.build({
-  entryPoints: ['AddonAPIKit.js'],
+  entryPoints: ['src/AddonAPIKit.js'],
   bundle: true,
   format: 'esm',
   outfile: 'dist/AddonAPIKit.js',
