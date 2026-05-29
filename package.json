@@ -1,0 +1,13 @@
+{
+  "name": "addonapikit",
+  "version": "1.0.0",
+  "description": "A Minecraft Bedrock Addon API utility library",
+  "type": "module",
+  "main": "dist/AddonAPIKit.js",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

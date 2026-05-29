@@ -50,9 +50,10 @@ export class AddonAPI {
             const returnValue = callback(...parameters);
             return this.#bundleReturnPacket({ code: APIErrorEnum.Success }, returnValue);
         } catch(error) {
-            if (error instanceof APICallerError)
+            if (error instanceof APICallerError) {
                 const errorPacket = this.#resolveErrorPacket(error);
                 return this.#bundleReturnPacket(errorPacket);
+            }
             console.error(error);
             const apiError = new APIServerError(error);
             const errorPacket = this.#resolveErrorPacket(apiError);
