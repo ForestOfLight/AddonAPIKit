@@ -1,12 +1,12 @@
 # Models
 
-AddonAPIKit uses PROTO models to define the types of data your endpoints accept and return. Because Minecraft's script event system carries everything as a string, PROTO serializes your typed values to binary and encodes them for transport. Models describe the shape of that data so the server and caller agree on how to read and write it.
+AddonAPIKit uses PROTO models from [MCBE-IPC](https://github.com/OmniacDev/MCBE-IPC) to define the types of data your endpoints accept and return. Because Minecraft's script event system carries everything as a string, PROTO serializes your typed values to binary and encodes them for transport. Models describe the shape of that data so the server and caller agree on how to read and write it.
 
 Every endpoint needs a model for its parameters and one for its return value. If an endpoint takes no parameters or returns nothing meaningful, use `VoidModel`.
 
-Models are built from the `PROTO` object exported by AddonAPIKit.
+API Servers should publicly provide a model for each endpoint they expose, so that API Callers can use the same model to call the endpoint.
 
----
+Models are built from the `PROTO` object exported by AddonAPIKit.
 
 ## Primitive Types
 
@@ -26,8 +26,6 @@ Models are built from the `PROTO` object exported by AddonAPIKit.
 | `PROTO.Date` | `Date` | JavaScript Date object |
 | `PROTO.UInt8Array` | `Uint8Array` | Raw byte array |
 
----
-
 ## Composite Types
 
 | Type | Description |
@@ -39,8 +37,6 @@ Models are built from the `PROTO` object exported by AddonAPIKit.
 | `PROTO.Map(keyType, valueType)` | A JavaScript `Map` |
 | `PROTO.Set(type)` | A JavaScript `Set` |
 | `PROTO.Cached(type, depth?)` | Caches serialized values; avoids re-serializing frequently repeated data |
-
----
 
 ## Building Models
 
@@ -87,8 +83,6 @@ const TeamModel = PROTO.Object({
     members: PROTO.Array(PROTO.String)
 });
 ```
-
----
 
 ## VoidModel
 
