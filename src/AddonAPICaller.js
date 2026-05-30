@@ -12,6 +12,8 @@ export class AddonAPICaller {
             await this.#populateValidEndpointCache(endpointBase);
         }
         if (this.#validEndpointCache.includes(endpoint))
+            // Unwrap the packet so that this returns juse the return values of the functions.
+            // How should error states be handled? They're just thrown, I think? Use the Error classes to show verbose strings.
             return await IPC.invoke(endpoint, parameterModel, parameterMap, returnDataModel).then(result => result.value);
         else
             throw new APIEndpointNotFoundError(endpoint);

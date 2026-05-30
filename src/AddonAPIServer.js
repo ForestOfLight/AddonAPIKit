@@ -6,7 +6,7 @@ import { APIVersionMismatchError } from "./Errors/APIVersionMismatchError";
 import { ReturnModelShell } from "./APIModels";
 import { EndpointsController } from "./EndpointsController";
 
-export class AddonAPI {
+export class AddonAPIServer {
     #name;
     #version;
     #allEndpoints;
