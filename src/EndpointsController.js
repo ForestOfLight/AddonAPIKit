@@ -6,6 +6,7 @@ export class EndpointsController extends APIController {
     #api;
 
     constructor(api) {
+        super();
         this.#api = api;
         this.addEndpoint("endpoints", this.getEndpoints, VoidModel, EndpointsModel);
         this.addEndpoint("endpoints:has", this.hasEndpoint, EndpointModel, PROTO.Boolean);
