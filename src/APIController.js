@@ -1,10 +1,5 @@
 export class APIController {
     #endpoints = {};
-    
-    constructor() {
-        if (this.constructor === APIController)
-            throw new Error("Cannot instantiate abstract class 'APIController'");
-    }
 
     get endpoints() {
         return this.#endpoints;
