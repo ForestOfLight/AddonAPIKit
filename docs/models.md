@@ -86,13 +86,13 @@ const TeamModel = PROTO.Object({
 
 ## VoidModel
 
-`VoidModel` is a named export that re-exports `PROTO.Void` for clarity.
+`VoidModel` is used to send or receive nothing.
 
 ```js
 import { VoidModel } from './AddonAPIKit.js';
 ```
 
-Use it as the parameter model when an endpoint takes no input, or as the return model when an endpoint has no meaningful return value. When used as the return model, the call still resolves — the data value is `undefined`, not an absence of response.
+Use it as the parameter model when an endpoint takes no input, or as the return model when an endpoint has no meaningful return value. When used as the return model, the call still resolves - the data value is `undefined`, not an absence of response.
 
 ```js
 // Endpoint that takes no input and returns nothing meaningful
@@ -101,6 +101,6 @@ controller.addEndpoint('reset', this.reset, VoidModel, VoidModel);
 
 ```js
 // The call resolves with undefined as the data value
-const result = await AddonAPICaller.call('myAddon:reset', VoidModel, undefined, VoidModel);
+const result = await APIcaller.call('myAddon:reset', VoidModel, undefined, VoidModel);
 // result === undefined, but the call completed successfully
 ```

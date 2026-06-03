@@ -25,7 +25,8 @@ server.setupController(controller);
 // Caller addon — call it from another addon
 import { AddonAPICaller, VoidModel, PROTO } from './AddonAPIKit.js';
 
-const count = await AddonAPICaller.call('playerInfo:getCount', VoidModel, undefined, PROTO.Int32);
+const playerInfoAPICaller = new AddonAPICaller('playerInfo', '1.0.0');
+const count = await playerInfoAPICaller.call('playerInfo:getCount', VoidModel, undefined, PROTO.Int32);
 console.log(`${count} players online`);
 ```
 

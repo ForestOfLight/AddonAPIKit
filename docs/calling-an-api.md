@@ -2,12 +2,26 @@
 
 `AddonAPICaller` lets your addon call endpoints exposed by another addon. Before the first call to a given server, it contacts that server to fetch its list of valid endpoints and caches them locally. This means you get a clear error if you reference an endpoint that does not exist, rather than a silent failure.
 
-## Making a call
+## Creating a caller
 
-All calls go through the static `AddonAPICaller.call` method:
+Create one `AddonAPICaller` instance per API server you want to call. Pass the server name and the API version you expect to target:
 
 ```js
-AddonAPICaller.call(endpoint, parameterModel, parameterMap, returnDataModel)
+import { AddonAPICaller } from './AddonAPIKit.js';
+
+const playerInfoAPICaller = new AddonAPICaller('playerInfo', '1.0.0');
+```
+
+The name must match the server name the publishing addon passed to `new AddonAPIServer(name, version)`. The version is sent with every request so the server can detect mismatches.
+
+Create the caller once at the top level of your script, outside any event handlers.
+
+## Making a call
+
+All calls go through the `call` instance method:
+
+```js
+playerInfoAPICaller.call(endpoint, parameterModel, parameterMap, returnDataModel)
 ```
 
 | Argument | Description |
@@ -37,12 +51,14 @@ These calls match the endpoints defined in the [Publishing an API](./publishing-
 ```js
 import { AddonAPICaller, VoidModel, PROTO } from './AddonAPIKit.js';
 
+const playerInfoAPICaller = new AddonAPICaller('playerInfo', '1.0.0');
+
 // No parameters — pass VoidModel and undefined
-const count = await AddonAPICaller.call('playerInfo:getCount', VoidModel, undefined, PROTO.Int32);
+const count = await playerInfoAPICaller.call('playerInfo:getCount', VoidModel, undefined, PROTO.Int32);
 console.log(`${count} players online`);
 
 // With parameters — pass the model and a matching object
-const name = await AddonAPICaller.call(
+const name = await playerInfoAPICaller.call(
     'playerInfo:getName',
     PROTO.Object({ index: PROTO.Int32 }),
     { index: 0 },
@@ -56,10 +72,14 @@ console.log(`First player: ${name}`);
 If you call an endpoint the server does not expose, `AddonAPICaller` throws before sending the call:
 
 ```js
+import { AddonAPICaller, APIEndpointNotFoundError, VoidModel, PROTO } from './AddonAPIKit.js';
+
+const playerInfoAPICaller = new AddonAPICaller('playerInfo', '1.0.0');
+
 try {
-    const name = await AddonAPICaller.call('playerInfo:getName', PROTO.Object({ index: PROTO.Int32 }), { index: 0 }, PROTO.String);
+    const name = await playerInfoAPICaller.call('playerInfo:getName', PROTO.Object({ index: PROTO.Int32 }), { index: 0 }, PROTO.String);
 } catch (error) {
-    if (error.name === 'APIEndpointNotFoundError') {
+    if (error instanceof APIEndpointNotFoundError) {
         console.warn('Endpoint does not exist:', error.message);
     }
 }
