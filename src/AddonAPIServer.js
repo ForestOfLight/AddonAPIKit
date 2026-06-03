@@ -3,13 +3,13 @@ import { APICallerError } from "./Errors/APICallerError";
 import { APIErrorEnum } from "./Errors/APIErrorEnum";
 import { APIServerError } from "./Errors/APIServerError";
 import { APIVersionMismatchError } from "./Errors/APIVersionMismatchError";
-import { ReturnModelShell } from "./APIModels";
+import { CallModelShell, ReturnModelShell } from "./APIModels";
 import { EndpointsController } from "./EndpointsController";
 
 export class AddonAPIServer {
     #name;
     #version;
-    #allEndpoints;
+    #allEndpoints = [];
 
     constructor(name, version) {
         this.#name = name;
@@ -43,12 +43,16 @@ export class AddonAPIServer {
     }
 
     #setupEndpoint(endpoint, callback, parameterModel, returnDataModel) {
+        const callPacketModel = this.#resolveCallModel(parameterModel);
         const returnPacketModel = this.#resolveReturnModel(returnDataModel);
         const endpointPath = this.endpointBase + endpoint;
-        IPC.handle(endpointPath, parameterModel, returnPacketModel, (callPacket) => {
+        IPC.handle(endpointPath, callPacketModel, returnPacketModel, (callPacket) => {
+            console.info(`Received at ${endpointPath}: ${JSON.stringify(callPacket)}`);
             const apiVersion = callPacket.apiVersion;
-            const parameters = Object.values(callPacket.parameterMap);
-            return this.#handleCallback(apiVersion, callback, parameters);
+            const parameters = this.#resolveParameters(callPacket);
+            const returnPacket = this.#handleCallback(apiVersion, callback, parameters);
+            console.info(`Replying ${JSON.stringify(returnPacket)}`);
+            return returnPacket;
         });
         this.#allEndpoints.push(endpointPath);
     }
@@ -63,7 +67,7 @@ export class AddonAPIServer {
                 const errorPacket = this.#resolveErrorPacket(error);
                 return this.#bundleReturnPacket(errorPacket);
             }
-            console.error(error);
+            console.error(error, error.stack);
             const apiError = new APIServerError(error);
             const errorPacket = this.#resolveErrorPacket(apiError);
             return this.#bundleReturnPacket(errorPacket);
@@ -77,11 +81,18 @@ export class AddonAPIServer {
         }
     }
 
+    #resolveCallModel(parameterModel) {
+        return PROTO.Object({ ...CallModelShell, parameterMap: parameterModel });
+    }
+
     #resolveReturnModel(returnDataModel) {
-        let returnModel = { ...ReturnModelShell };
-        returnModel.data = returnDataModel;
-        returnModel = PROTO.Object(returnModel);
-        return returnModel;
+        return PROTO.Object({ ...ReturnModelShell, data: PROTO.Optional(returnDataModel) });
+    }
+
+    #resolveParameters(callPacket) {
+        if (callPacket.parameterMap === void 0)
+            return [];
+        return Object.values(callPacket.parameterMap);
     }
 
     #bundleReturnPacket(errorPacket, returnValue = void 0) {

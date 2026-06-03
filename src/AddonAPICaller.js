@@ -1,49 +1,67 @@
 import { system } from "@minecraft/server";
 import { IPC, PROTO } from "./MCBE-IPC/ipc";
-import { VoidModel } from "./APIModels";
+import { CallModelShell, EndpointsModel, ReturnModelShell, VoidModel } from "./APIModels";
 import { APIEndpointNotFoundError } from "./Errors/APIEndpointNotFoundError";
 import { APICallerError, APIErrorEnum } from "./AddonAPIKit";
 import { APIServerError } from "./Errors/APIServerError";
 
 export class AddonAPICaller {
-    static #validEndpointCache = [];
+    #name;
+    #version;
+    #validEndpointCache = [];
 
-    static async call(endpoint, parameterModel, parameterMap, returnDataModel) {
-        await AddonAPICaller.#tryPopulateEndpointCache(endpoint);
-        if (AddonAPICaller.#endpointExists(endpoint)) {
-            const response = await IPC.invoke(endpoint, parameterModel, parameterMap, returnDataModel).then(result => result.value);
-            return AddonAPICaller.#unwrapPacket(response);
-        } else {
+    constructor(name, version) {
+        this.#name = name;
+        this.#version = version;
+    }
+
+    async call(endpoint, parameterMapModel, parameterMap, returnDataModel) {
+        await this.#tryPopulateEndpointCache(endpoint);
+        if (this.#endpointExists(endpoint))
+            return this.#callDirect(endpoint, parameterMapModel, parameterMap, returnDataModel);
+        else
             throw new APIEndpointNotFoundError(endpoint);
-        }
     }
 
-    static async #tryPopulateEndpointCache(endpoint) {
-        if (AddonAPICaller.#validEndpointCache.length === 0) {
+    async #tryPopulateEndpointCache(endpoint) {
+        if (this.#validEndpointCache.length === 0) {
             const endpointBase = endpoint.split(':')[0];
-            await AddonAPICaller.#populateValidEndpointCache(endpointBase);
+            const validEndpoints = await this.#callDirect(endpointBase + ":endpoints", VoidModel, void 0, EndpointsModel);
+            this.#validEndpointCache.push(...validEndpoints);
         }
     }
 
-    static #endpointExists(endpoint) {
-        return AddonAPICaller.#validEndpointCache.includes(endpoint);
+    async #callDirect(endpoint, parameterMapModel, parameterMap, returnDataModel) {
+        const parameterPacket = { apiVersion: this.#version, parameterMap: parameterMap };
+        const parameterModel = this.#resolveParameterModel(parameterMapModel);
+        const returnModel = this.#resolveReturnModel(returnDataModel);
+        console.info(`Sending to ${endpoint}: ${JSON.stringify(parameterPacket)}`);
+        const returnPacket = await IPC.invoke(endpoint, parameterModel, parameterPacket, returnModel);
+        console.info(`Received from ${endpoint}: ${JSON.stringify(returnPacket)}`);
+        return this.#unwrapReturnPacket(returnPacket);
     }
 
-    static async #populateValidEndpointCache(endpointBase) {
-        const endpointsEndpoint = endpointBase + ':endpoints';
-        const validEndpoints = await IPC.invoke(endpointsEndpoint, VoidModel, void 0, PROTO.Boolean);
-        AddonAPICaller.#validEndpointCache.push(...validEndpoints);
+    #endpointExists(endpoint) {
+        return this.#validEndpointCache.includes(endpoint);
     }
 
-    static #unwrapPacket(packet) {
+    #resolveParameterModel(parameterMapModel) {
+        return PROTO.Object({ ...CallModelShell, parameterMap: parameterMapModel });
+    }
+
+    #resolveReturnModel(returnDataModel) {
+        return PROTO.Object({ ...ReturnModelShell, data: PROTO.Optional(returnDataModel) });
+    }
+
+    #unwrapReturnPacket(packet) {
         const { data, error } = packet;
         if (error.code === APIErrorEnum.Success)
             return data;
         else
-            AddonAPICaller.#throwAPIError(packet.error);
+            this.#throwAPIError(packet.error);
     }
 
-    static #throwAPIError(errorData) {
+    #throwAPIError(errorData) {
         switch(errorData.code) {
             case APIErrorEnum.Caller:
                 throw new APICallerError(errorData);

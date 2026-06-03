@@ -1,6 +1,6 @@
 import { PROTO } from "./MCBE-IPC/ipc";
 
-export const VoidModel = PROTO.Void;
+export const VoidModel = PROTO.Optional(PROTO.Void);
 
 export const ErrorModel = PROTO.Optional(PROTO.Object({
     code: PROTO.Int8,
