@@ -1,13 +1,29 @@
 {
-  "name": "addonapikit",
+  "name": "@forestoflight/addonapikit",
   "version": "1.0.0",
-  "description": "A Minecraft Bedrock Addon API utility library",
+  "description": "A Minecraft Bedrock Addon library for exposing and calling APIs between packs.",
   "type": "module",
   "main": "dist/AddonAPIKit.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@minecraft/server": "*"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forestoflight/addonapikit"
+  },
+  "license": "MIT",
+  "keywords": ["minecraft", "bedrock", "addon", "api", "mcbe-ipc"]
 }

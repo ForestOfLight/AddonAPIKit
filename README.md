@@ -6,7 +6,15 @@ AddonAPIKit builds on [MCBE-IPC](https://github.com/OmniacDev/MCBE-IPC) to provi
 
 ## Installation
 
+### Manual
+
 Download `AddonAPIKit.js` from the [releases page](../../releases) and copy it into your addon's script directory. Import from it directly.
+
+### NPM
+
+```bash
+npm install @forestoflight/addonapikit
+```
 
 ## Quick example
 
